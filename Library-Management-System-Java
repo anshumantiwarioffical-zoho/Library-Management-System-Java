@@ -1,1 +1,196 @@
+// Library Management System (Console Based Java Project)
 
+// Import utility packages
+import java.util.*;
+import java.io.*;
+
+// ------------------------------------------------------
+// Book class represents a single book in the library
+// ------------------------------------------------------
+class Book implements Serializable {
+    int bookId;        // Unique book ID
+    String title;      // Book title
+    String author;     // Author name
+    boolean isIssued;  // Status: true if issued, false if available
+
+    // Constructor to initialize book object
+    Book(int bookId, String title, String author) {
+        this.bookId = bookId;
+        this.title = title;
+        this.author = author;
+        this.isIssued = false; // Initially available
+    }
+
+    // Issue the book
+    void issueBook() {
+        if(isIssued) {
+            System.out.println("Book is already issued.");
+        } else {
+            isIssued = true;
+            System.out.println("Book issued successfully.");
+        }
+    }
+
+    // Return the book
+    void returnBook() {
+        if(!isIssued) {
+            System.out.println("Book was not issued.");
+        } else {
+            isIssued = false;
+            System.out.println("Book returned successfully.");
+        }
+    }
+
+    // Display book details
+    void displayBook() {
+        String status = isIssued ? "Issued" : "Available";
+        System.out.println("Book ID: " + bookId + ", Title: " + title + ", Author: " + author + ", Status: " + status);
+    }
+}
+
+// ------------------------------------------------------
+// Main class for Library Management System
+// ------------------------------------------------------
+public class LibraryManagementSystem {
+
+    // List to store all books
+    static ArrayList<Book> books = new ArrayList<>();
+    static Scanner sc = new Scanner(System.in);
+
+    // File to save library data
+    static final String FILE_NAME = "libraryBooks.dat";
+
+    public static void main(String[] args) {
+
+        // Load books from file if exists
+        loadFromFile();
+
+        int choice = 0;
+
+        // Menu loop
+        do {
+            System.out.println("\n--- Library Management System ---");
+            System.out.println("1. Add Book");
+            System.out.println("2. View Books");
+            System.out.println("3. Issue Book");
+            System.out.println("4. Return Book");
+            System.out.println("5. Save & Exit");
+            System.out.print("Enter choice: ");
+
+            try {
+                choice = sc.nextInt();
+            } catch(InputMismatchException e) {
+                System.out.println("Please enter numbers only.");
+                sc.nextLine();
+                continue;
+            }
+
+            switch(choice) {
+                case 1:
+                    addBook();
+                    break;
+                case 2:
+                    viewBooks();
+                    break;
+                case 3:
+                    issueBook();
+                    break;
+                case 4:
+                    returnBook();
+                    break;
+                case 5:
+                    saveToFile();
+                    System.out.println("Data saved. Exiting program...");
+                    break;
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+
+        } while(choice != 5);
+    }
+
+    // Add a new book
+    static void addBook() {
+        System.out.print("Enter Book ID: ");
+        int id = sc.nextInt();
+        sc.nextLine(); // consume newline
+
+        System.out.print("Enter Book Title: ");
+        String title = sc.nextLine();
+
+        System.out.print("Enter Author Name: ");
+        String author = sc.nextLine();
+
+        books.add(new Book(id, title, author));
+        System.out.println("Book added successfully.");
+    }
+
+    // View all books
+    static void viewBooks() {
+        if(books.isEmpty()) {
+            System.out.println("No books found.");
+        } else {
+            for(Book b : books) {
+                b.displayBook();
+            }
+        }
+    }
+
+    // Issue a book by ID
+    static void issueBook() {
+        System.out.print("Enter Book ID to issue: ");
+        int id = sc.nextInt();
+
+        Book b = findBook(id);
+        if(b != null) {
+            b.issueBook();
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+
+    // Return a book by ID
+    static void returnBook() {
+        System.out.print("Enter Book ID to return: ");
+        int id = sc.nextInt();
+
+        Book b = findBook(id);
+        if(b != null) {
+            b.returnBook();
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+
+    // Find book by ID
+    static Book findBook(int id) {
+        for(Book b : books) {
+            if(b.bookId == id) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    // Save library data to file
+    static void saveToFile() {
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME));
+            oos.writeObject(books);
+            oos.close();
+        } catch(IOException e) {
+            System.out.println("Error while saving data.");
+        }
+    }
+
+    // Load library data from file
+    static void loadFromFile() {
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_NAME));
+            books = (ArrayList<Book>) ois.readObject();
+            ois.close();
+        } catch(Exception e) {
+            books = new ArrayList<>();
+        }
+    }
+}
